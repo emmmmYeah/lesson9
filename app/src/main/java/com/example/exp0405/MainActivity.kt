@@ -1,11 +1,13 @@
 package com.example.exp0405
 
-import android.annotation.SuppressLint
+import android.content.ContentValues
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +17,8 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var helper:DBHelper
     lateinit var adapter:TodoAdapter
+
+    private  var toUpdate:Todo?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,8 +36,56 @@ class MainActivity : AppCompatActivity() {
         recycler.adapter=adapter
     //
         readInDb()
+        findViewById<TextView>(R.id.btn_save).setOnClickListener{
+            saveInput()
+        }
     }
-    @SuppressLint("Range")
+
+    private fun saveInput() {
+        //取出字符串并转向saveInDb()中
+        val text=findViewById<EditText>(R.id.ipt_text).text.toString()
+        saveInDb(text)
+    }
+
+    private fun saveInDb(text: String) {
+        //往数据库存数据！！！
+        val db=helper.writableDatabase
+        val item=Todo(text,System.currentTimeMillis())
+        val values=ContentValues().apply {
+            put(Todo.COL_CONTENT,item.content)
+            put(Todo.COL_TIME,item.createTime)
+        }
+        var rs=-1
+
+        if(toUpdate!=null) {
+            item.id=toUpdate?.id
+            Log.d(TAG,"UPDATE ID=$rs")
+            rs=db.update(Todo.TABLE,values,"id=?", arrayOf(toUpdate?.id.toString()))
+            if(rs!=-1){
+                toUpdate?.id?.let { adapter.replaceItem(it,item) }
+                toUpdate=null
+        }
+            else{
+                Log.d(TAG,"insert id =$rs")
+                rs=db.insert(Todo.TABLE,null,values).toInt()
+                if(rs!=-1){
+                    item.id=rs
+                    adapter.addItem(item)
+                }
+            }
+        }
+
+        //一定要置空！！
+        setInputText("")
+
+    }
+
+    private fun setInputText(s: String) {
+        findViewById<EditText>(R.id.ipt_text).setText(s)
+
+    }
+
+
     private fun readInDb() {
         val db = helper.readableDatabase//文件为只读
         val cursor = db.query(Todo.TABLE,null,null,null,null,null,
@@ -43,6 +95,7 @@ class MainActivity : AppCompatActivity() {
             do{//遍历Cursor对象，取出数据并打印
                 arr.add(
                     Todo(
+                        //这里需要加个判断才行
                         cursor.getString(cursor.getColumnIndex(Todo.COL_CONTENT)),
                         cursor.getLong(cursor.getColumnIndex(Todo.COL_TIME)),
                     ).apply {
@@ -57,7 +110,7 @@ class MainActivity : AppCompatActivity() {
         cursor.close()
     }
 //这个是使用recycler最重要的部分
-    inner class TodoAdapter: RecyclerView.Adapter<TodoViewHolder>() {
+  inner class TodoAdapter: RecyclerView.Adapter<TodoViewHolder>() {
     val cont= arrayListOf<Todo>()//这个是getItemCount重要返还的数据大小的数据
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
@@ -91,6 +144,28 @@ class MainActivity : AppCompatActivity() {
     fun setData(arr: ArrayList<Todo>) {
         cont.addAll(arr)
         notifyDataSetChanged()
+    }
+
+    fun replaceItem(id: Int, item: Todo) {
+        val idx = findIdx(id)
+        if(idx >= 0) {
+            cont.set(idx, item)
+            notifyItemChanged(idx)
+        }
+    }
+
+    fun addItem(item: Todo) {
+        cont.add(0,item)
+        notifyItemInserted(0)
+    }
+    private fun findIdx(id:Int?):Int{
+        var idx=-1
+        cont.forEachIndexed{ index,todo-?
+            if(todo.id==id){
+                idx=index
+            }
+        }
+        return idx
     }
 
 }
