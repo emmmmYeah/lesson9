@@ -41,6 +41,42 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.btn_save).setOnClickListener {
             saveInput()
         }
+        findViewById<TextView>(R.id.btn_seach).setOnClickListener {
+            Searchfor()
+        }
+    }
+
+    private fun Searchfor() {
+        val text=findViewById<EditText>(R.id.ipt_search).text.toString()
+        Log.d(TAG,"SEARCH FOR TEXT=$text")
+        searchInDb(text)
+    }
+    @SuppressLint("Range")
+    private fun searchInDb(text: String) {//遍历表，进行查询，如果有则显示单个
+        val db = helper.readableDatabase//文件为只读
+        val cursor = db.query(
+            Todo.TABLE,
+            null, " ${Todo.COL_CONTENT} LIKE ?", arrayOf("%${text}%"), null, null,
+            "${Todo.COL_ID} desc "
+        )
+
+        if (cursor.moveToFirst()) {
+            do {//遍历Cursor对象，取出数据并打印
+                        val content=cursor.getString(cursor.getColumnIndex(Todo.COL_CONTENT))
+                        //cursor.getLong(cursor.getColumnIndex(Todo.COL_TIME))
+                        val id = cursor.getInt(cursor.getColumnIndex(Todo.COL_ID))
+
+                    Log.d(TAG, "id ${Todo.COL_ID},cont ${content}")
+                    Log.d(TAG, "id ${Todo.COL_ID},cont ${id}")
+//目前是可以找到的，然后就是让他显示在list的位置就好了,跳转至一个新的页面然后再加一个列表进行搜索
+
+
+            } while (cursor.moveToNext())
+        }
+
+
+
+        cursor.close()
     }
 
     private fun saveInput() {

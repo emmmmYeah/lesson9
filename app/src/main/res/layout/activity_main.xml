@@ -5,10 +5,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity">
+        <EditText
+        android:id="@+id/ipt_search"
+        app:layout_constraintTop_toTopOf="parent"
+        android:lines="4"
+        android:background="@color/black"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
 
+        tools:text="这是一个美好的xxx "
+        android:textColor="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+        <Button
+        android:id="@+id/btn_seach"
+        app:layout_constraintTop_toBottomOf="@id/ipt_search"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="10dp"
+        android:text="查找"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
         <EditText
             android:id="@+id/ipt_text"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_seach"
             android:lines="4"
             android:background="@color/black"
             android:paddingStart="16dp"
